@@ -1,0 +1,232 @@
+// до рефакторингу:
+string[] customerInfo = new string[3];
+customerInfo[0] = "John Doe";
+customerInfo[1] = "123 Elm Street";
+customerInfo[2] = "555-1234";
+
+// Використання масиву:
+Console.WriteLine($"Клієнт: {customerInfo[0]}, Адреса: {customerInfo[1]}, Телефон: {customerInfo[2]}");
+
+// після рефакторингу
+public class Customer
+{
+    public string Name { get; set; }
+    public string Address { get; set; }
+    public string PhoneNumber { get; set; }
+
+    public Customer(string name, string address, string phoneNumber)
+    {
+        Name = name;
+        Address = address;
+        PhoneNumber = phoneNumber;
+    }
+}
+
+// Використання:
+Customer customer = new Customer("John Doe", "123 Elm Street", "555-1234");
+Console.WriteLine($"Клієнт: {customer.Name}, Адреса: {customer.Address}, Телефон: {customer.PhoneNumber}");
+
+
+
+
+//Код до рефакторингу
+using System;
+
+// Клас для управління клієнтами
+class CustomerService
+{
+    public void AddCustomer(string customerName)
+    {
+        Console.WriteLine($"Adding customer: {customerName}");
+    }
+
+    public void RemoveCustomer(string customerName)
+    {
+        Console.WriteLine($"Removing customer: {customerName}");
+    }
+}
+
+// Клас для обробки замовлень
+class OrderService
+{
+    private CustomerService _customerService;
+
+    public OrderService(CustomerService customerService)
+    {
+        _customerService = customerService;
+    }
+
+    public void PlaceOrder(string customerName, string orderDetails)
+    {
+        // Пряме делегування до CustomerService
+        _customerService.AddCustomer(customerName);
+        Console.WriteLine($"Placing order: {orderDetails}");
+    }
+
+    public void CancelOrder(string customerName, string orderDetails)
+    {
+        // Пряме делегування до CustomerService
+        _customerService.RemoveCustomer(customerName);
+        Console.WriteLine($"Cancelling order: {orderDetails}");
+    }
+}
+
+//Код після рефакторингу
+using System;
+
+// Клас для управління клієнтами
+class CustomerService
+{
+    public void AddCustomer(string customerName)
+    {
+        Console.WriteLine($"Adding customer: {customerName}");
+    }
+
+    public void RemoveCustomer(string customerName)
+    {
+        Console.WriteLine($"Removing customer: {customerName}");
+    }
+}
+
+// Клас-проксі для приховування делегування
+class CustomerProxy
+{
+    private CustomerService _customerService;
+
+    public CustomerProxy(CustomerService customerService)
+    {
+        _customerService = customerService;
+    }
+
+    public void AddCustomer(string customerName)
+    {
+        // Додаткові дії перед делегуванням, наприклад, логування чи перевірки
+        Console.WriteLine("Proxy: Adding customer via proxy.");
+        _customerService.AddCustomer(customerName);
+    }
+
+    public void RemoveCustomer(string customerName)
+    {
+        // Додаткові дії перед делегуванням
+        Console.WriteLine("Proxy: Removing customer via proxy.");
+        _customerService.RemoveCustomer(customerName);
+    }
+}
+
+// Клас для обробки замовлень
+class OrderService
+{
+    private CustomerProxy _customerProxy;
+
+    public OrderService(CustomerProxy customerProxy)
+    {
+        _customerProxy = customerProxy;
+    }
+
+    public void PlaceOrder(string customerName, string orderDetails)
+    {
+        // Використовуємо проксі замість прямого доступу до CustomerService
+        _customerProxy.AddCustomer(customerName);
+        Console.WriteLine($"Placing order: {orderDetails}");
+    }
+
+    public void CancelOrder(string customerName, string orderDetails)
+    {
+        // Використовуємо проксі замість прямого доступу до CustomerService
+        _customerProxy.RemoveCustomer(customerName);
+        Console.WriteLine($"Cancelling order: {orderDetails}");
+    }
+}
+
+
+
+//Код до рефакторингу
+using System;
+using System.Collections.Generic;
+
+// Клас замовлення
+class Order
+{
+    public string OrderId { get; set; }
+    public string CustomerName { get; set; }
+}
+
+// Клас для управління замовленнями
+class OrderService
+{
+    public List<Order> Orders { get; set; } = new List<Order>();
+
+    public void AddOrder(Order order)
+    {
+        Orders.Add(order);
+    }
+
+    public void RemoveOrder(string orderId)
+    {
+        Orders.RemoveAll(o => o.OrderId == orderId);
+    }
+
+    public void PrintOrders()
+    {
+        foreach (var order in Orders)
+        {
+            Console.WriteLine($"Order ID: {order.OrderId}, Customer: {order.CustomerName}");
+        }
+    }
+}
+
+//Код після рефакторингу
+using System;
+using System.Collections.Generic;
+
+// Клас замовлення
+class Order
+{
+    public string OrderId { get; set; }
+    public string CustomerName { get; set; }
+}
+
+// Клас для управління замовленнями
+class OrderService
+{
+    private List<Order> Orders { get; set; } = new List<Order>();
+
+    // Метод для додавання замовлення
+    public void AddOrder(Order order)
+    {
+        // Перевірка перед додаванням
+        if (string.IsNullOrEmpty(order.OrderId))
+        {
+            Console.WriteLine("Order ID is required.");
+            return;
+        }
+        Orders.Add(order);
+        Console.WriteLine($"Order {order.OrderId} added.");
+    }
+
+    // Метод для видалення замовлення
+    public void RemoveOrder(string orderId)
+    {
+        var order = Orders.Find(o => o.OrderId == orderId);
+        if (order != null)
+        {
+            Orders.Remove(order);
+            Console.WriteLine($"Order {orderId} removed.");
+        }
+        else
+        {
+            Console.WriteLine($"Order {orderId} not found.");
+        }
+    }
+
+    // Метод для виведення замовлень
+    public void PrintOrders()
+    {
+        foreach (var order in Orders)
+        {
+            Console.WriteLine($"Order ID: {order.OrderId}, Customer: {order.CustomerName}");
+        }
+    }
+}
+
+
